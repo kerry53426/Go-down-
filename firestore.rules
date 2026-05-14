@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    function isValidRegistration(data) {
+      return data.keys().hasAll(['orgId', 'userId', 'date', 'name', 'phone', 'isUp', 'isDown', 'isStay', 'createdAt']) &&
+        data.keys().size() == 9 &&
+        data.orgId == 'sheipa' &&
+        data.userId is string && data.userId.size() <= 128 && data.userId == request.auth.uid &&
+        data.date is string && data.date.size() == 10 &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        data.phone is string && data.phone.size() > 0 && data.phone.size() <= 20 &&
+        data.isUp is bool &&
+        data.isDown is bool &&
+        data.isStay is bool &&
+        data.createdAt is timestamp;
+    }
+
+    match /registrations/{registrationId} {
+      allow list: if isSignedIn() && resource.data.orgId == 'sheipa';
+      
+      allow get: if isSignedIn() && resource.data.orgId == 'sheipa' && isValidId(registrationId);
+
+      allow create: if isSignedIn() && isValidId(registrationId) && isValidRegistration(incoming()) && incoming().createdAt == request.time;
+      
+      allow delete: if isSignedIn() && isValidId(registrationId) && existing().userId == request.auth.uid;
+
+      allow update: if false; 
+    }
+  }
+}

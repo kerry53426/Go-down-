@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "Registration": {
+      "title": "Registration",
+      "description": "A shuttle and housing registration for an employee.",
+      "type": "object",
+      "properties": {
+        "orgId": { "type": "string", "description": "Always 'sheipa'" },
+        "userId": { "type": "string", "description": "ID of the user who created this registration" },
+        "date": { "type": "string", "description": "YYYY-MM-DD" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "isUp": { "type": "boolean" },
+        "isDown": { "type": "boolean" },
+        "isStay": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["orgId", "userId", "date", "name", "phone", "isUp", "isDown", "isStay", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/registrations/{registrationId}": {
+      "schema": { "$ref": "#/entities/Registration" },
+      "description": "All shuttle registration entries"
+    }
+  }
+}
